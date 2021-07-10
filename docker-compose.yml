@@ -1,0 +1,41 @@
+version: '2'
+
+services:
+
+    rabbitmq:
+        container_name: rabbitmq
+        image: rabbitmq:3.8-management
+        ports:
+          - "15672:15672"
+          - "5672:5672"
+
+    stream_twitter:
+        container_name: stream_twitter
+        build:
+            context: ./
+        command: "python -m harkn.stream_twitter_pika"
+        environment:
+          - TRACK_QUERY
+          - CONSUMER_KEY
+          - CONSUMER_SECRET
+          - ACCESS_TOKEN_KEY
+          - ACCESS_TOKEN_SECRET
+          - RABBITMQ_HOST=rabbitmq
+        restart: on-failure
+        links:
+          - rabbitmq
+
+    stream_reddit:
+        container_name: stream_reddit
+        build:
+            context: ./
+        command: "python -m harkn.stream_reddit_pika"
+        environment:
+          - REDDIT_CLIENT_ID
+          - REDDIT_CLIENT_SECRET
+          - REDDIT_USER_AGENT
+          - REDDIT_SUBREDDIT
+          - RABBITMQ_HOST=rabbitmq
+        restart: on-failure
+        links:
+          - rabbitmq
